@@ -6,7 +6,7 @@ import { formatRole } from '../utils/format'
 
 export default function LoginPage() {
   const [, setLocation] = useLocation()
-  const { token, login } = useAuth()
+  const { token, user, login } = useAuth()
   const { register, handleSubmit, setValue, formState: { errors } } = useForm({
     defaultValues: {
       email: '',
@@ -17,16 +17,27 @@ export default function LoginPage() {
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState(null)
 
+  const getRedirectPath = (role) => {
+    switch (role) {
+      case 'fleet_manager': return '/dashboard/vehicles'
+      case 'dispatcher': return '/dashboard'
+      case 'safety_officer': return '/dashboard/drivers'
+      case 'financial_analyst': return '/dashboard/expenses'
+      default: return '/dashboard'
+    }
+  }
+
   useEffect(() => {
-    if (token) setLocation('/dashboard')
-  }, [token, setLocation])
+    if (token && user) {
+      setLocation(getRedirectPath(user.role))
+    }
+  }, [token, user, setLocation])
 
   const onSubmit = async (data) => {
     setError(null)
     setSubmitting(true)
     try {
       await login(data.email, data.password, data.role)
-      setLocation('/dashboard')
     } catch (err) {
       setError(err.message)
     } finally {

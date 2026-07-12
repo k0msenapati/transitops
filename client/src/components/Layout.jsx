@@ -20,35 +20,7 @@ export default function Layout({ children }) {
           </div>
           <p className="text-xs text-zinc-500 font-medium mb-10">Smart Transport Operations Platform</p>
 
-          <div className="max-w-md mt-6">
-            <h3 className="text-sm font-semibold mb-5 text-zinc-200 uppercase tracking-wider">Platform Roles</h3>
-            <ul className="flex flex-col gap-4">
-              <li className="flex gap-3 items-start text-xs text-zinc-400">
-                <span className="bg-zinc-900 border border-zinc-800 text-zinc-200 text-[10px] font-semibold px-2 py-0.5 rounded uppercase tracking-wider mt-0.5">
-                  Fleet Manager
-                </span>
-                <span>Full fleet lifecycle & operations management</span>
-              </li>
-              <li className="flex gap-3 items-start text-xs text-zinc-400">
-                <span className="bg-zinc-900 border border-zinc-800 text-zinc-200 text-[10px] font-semibold px-2 py-0.5 rounded uppercase tracking-wider mt-0.5">
-                  Dispatcher
-                </span>
-                <span>Trip planning, driver matching, and active dispatch</span>
-              </li>
-              <li className="flex gap-3 items-start text-xs text-zinc-400">
-                <span className="bg-zinc-900 border border-zinc-800 text-zinc-200 text-[10px] font-semibold px-2 py-0.5 rounded uppercase tracking-wider mt-0.5">
-                  Safety Officer
-                </span>
-                <span>Compliance verification & safety scores audits</span>
-              </li>
-              <li className="flex gap-3 items-start text-xs text-zinc-400">
-                <span className="bg-zinc-900 border border-zinc-800 text-zinc-200 text-[10px] font-semibold px-2 py-0.5 rounded uppercase tracking-wider mt-0.5">
-                  Financial Analyst
-                </span>
-                <span>Cost analysis, fuel consumption, and ROI metrics</span>
-              </li>
-            </ul>
-          </div>
+
         </div>
 
         <footer className="text-[10px] text-zinc-600 tracking-widest uppercase z-10">

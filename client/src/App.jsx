@@ -10,6 +10,10 @@ import VehiclesPage from './pages/VehiclesPage'
 import DriversPage from './pages/DriversPage'
 import TripsPage from './pages/TripsPage'
 import MaintenancePage from './pages/MaintenancePage'
+import CompliancePage from './pages/CompliancePage'
+import ExpensesPage from './pages/ExpensesPage'
+import AnalyticsPage from './pages/AnalyticsPage'
+import SettingsPage from './pages/SettingsPage'
 import NotFoundPage from './pages/NotFoundPage'
 
 export default function App() {
@@ -57,6 +61,30 @@ export default function App() {
         <Route path="/dashboard/maintenance">
           <DashboardLayout>
             <MaintenancePage />
+          </DashboardLayout>
+        </Route>
+
+        <Route path="/dashboard/compliance">
+          <DashboardLayout>
+            <CompliancePage />
+          </DashboardLayout>
+        </Route>
+
+        <Route path="/dashboard/expenses">
+          <DashboardLayout>
+            <ExpensesPage />
+          </DashboardLayout>
+        </Route>
+
+        <Route path="/dashboard/analytics">
+          <DashboardLayout>
+            <AnalyticsPage />
+          </DashboardLayout>
+        </Route>
+
+        <Route path="/dashboard/settings">
+          <DashboardLayout>
+            <SettingsPage />
           </DashboardLayout>
         </Route>
 

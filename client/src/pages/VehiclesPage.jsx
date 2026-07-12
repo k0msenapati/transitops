@@ -3,18 +3,66 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { useForm } from 'react-hook-form'
 import { useAuth } from '../context/AuthContext'
 
+const MOCK_VEHICLES = [
+  {
+    id: 'm1',
+    registration_number: 'GJ01AB452',
+    model: 'VAN-05',
+    type: 'Van',
+    max_load_capacity: 500,
+    odometer: 74000,
+    acquisition_cost: 620000,
+    status: 'Available'
+  },
+  {
+    id: 'm2',
+    registration_number: 'GJ01AB998',
+    model: 'TRUCK-11',
+    type: 'Truck',
+    max_load_capacity: 5000,
+    odometer: 182000,
+    acquisition_cost: 2450000,
+    status: 'On Trip'
+  },
+  {
+    id: 'm3',
+    registration_number: 'GJ01AB1120',
+    model: 'MINI-03',
+    type: 'Mini',
+    max_load_capacity: 1000,
+    odometer: 66000,
+    acquisition_cost: 410000,
+    status: 'In Shop'
+  },
+  {
+    id: 'm4',
+    registration_number: 'GJ01AB0008',
+    model: 'VAN-09',
+    type: 'Van',
+    max_load_capacity: 750,
+    odometer: 241900,
+    acquisition_cost: 590000,
+    status: 'Retired'
+  }
+]
+
 export default function VehiclesPage() {
   const { token, user } = useAuth()
   const queryClient = useQueryClient()
   const [modalOpen, setModalOpen] = useState(false)
   const { register, handleSubmit, reset, formState: { errors } } = useForm()
   const [error, setError] = useState(null)
+  
+  // Search and filter states
+  const [search, setSearch] = useState('')
+  const [filterType, setFilterType] = useState('All')
+  const [filterStatus, setFilterStatus] = useState('All')
 
   // Enforce Fleet Manager access guard
   const isManager = user?.role === 'fleet_manager'
 
   // Fetch Vehicles
-  const { data: vehicles = [], isLoading } = useQuery({
+  const { data: dbVehicles = [], isLoading } = useQuery({
     queryKey: ['vehicles', token],
     queryFn: async () => {
       const res = await fetch('/api/vehicles', {
@@ -39,7 +87,7 @@ export default function VehiclesPage() {
       })
       if (!res.ok) {
         const errData = await res.json().catch(() => ({}))
-        throw new Error(errData.detail || 'Failed to create vehicle. Check duplicate registration number.')
+        throw new Error(errData.detail || 'Failed to create vehicle.')
       }
       return res.json()
     },
@@ -64,6 +112,30 @@ export default function VehiclesPage() {
     })
   }
 
+  // Combine Mock vehicles & DB vehicles (ensuring no duplicate reg numbers)
+  const allVehicles = [...MOCK_VEHICLES]
+  dbVehicles.forEach(dbV => {
+    if (!allVehicles.some(v => v.registration_number.toLowerCase() === dbV.registration_number.toLowerCase())) {
+      allVehicles.push(dbV)
+    }
+  })
+
+  // Apply filters
+  const filteredVehicles = allVehicles.filter(v => {
+    const matchesSearch = v.registration_number.toLowerCase().includes(search.toLowerCase())
+    const matchesType = filterType === 'All' || v.type === filterType
+    const matchesStatus = filterStatus === 'All' || v.status === filterStatus
+    return matchesSearch && matchesType && matchesStatus
+  })
+
+  const formatCapacity = (capacity) => {
+    if (capacity >= 1000) {
+      const tons = capacity / 1000
+      return `${tons} Ton${tons > 1 ? 's' : ''}`
+    }
+    return `${capacity} kg`
+  }
+
   if (!isManager) {
     return (
       <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-8 text-center max-w-lg mx-auto mt-12 shadow-xl">
@@ -79,95 +151,118 @@ export default function VehiclesPage() {
   }
 
   return (
-    <div className="flex flex-col gap-8">
-      {/* Page Header */}
-      <div className="flex justify-between items-center flex-wrap gap-4">
-        <div>
-          <h2 className="text-2xl font-bold tracking-tight">Fleet Registry</h2>
-          <p className="text-sm text-zinc-400">Manage all logistics vehicles and configurations</p>
+    <div className="flex flex-col gap-8 animate-fade-in">
+      {/* Top Filter and Search Bar */}
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div className="flex flex-wrap items-center gap-3">
+          <select 
+            value={filterType} 
+            onChange={(e) => setFilterType(e.target.value)}
+            className="bg-zinc-900 border border-zinc-850 rounded-lg px-3 py-2 text-xs text-zinc-350 focus:outline-none cursor-pointer focus:border-zinc-500 transition-colors"
+          >
+            <option value="All">Type: All</option>
+            <option value="Van">Van</option>
+            <option value="Truck">Truck</option>
+            <option value="Mini">Mini</option>
+          </select>
+          <select 
+            value={filterStatus}
+            onChange={(e) => setFilterStatus(e.target.value)}
+            className="bg-zinc-900 border border-zinc-850 rounded-lg px-3 py-2 text-xs text-zinc-350 focus:outline-none cursor-pointer focus:border-zinc-500 transition-colors"
+          >
+            <option value="All">Status: All</option>
+            <option value="Available">Available</option>
+            <option value="On Trip">On Trip</option>
+            <option value="In Shop">In Shop</option>
+            <option value="Retired">Retired</option>
+          </select>
+          <input
+            type="text"
+            placeholder="Search reg. no..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className="bg-zinc-900 border border-zinc-850 rounded-lg px-3 py-2 text-xs text-zinc-350 focus:outline-none focus:border-zinc-500 transition-colors placeholder-zinc-650 w-48"
+          />
         </div>
         <button 
           onClick={() => setModalOpen(true)}
-          className="px-4 py-2.5 bg-zinc-100 hover:bg-zinc-200 text-zinc-900 text-sm font-semibold rounded-lg transition-colors cursor-pointer"
+          className="px-4 py-2 bg-[#b87310] hover:bg-[#a0620c] text-white text-xs font-bold rounded-lg transition-colors cursor-pointer flex items-center gap-1.5 shrink-0"
         >
-          Add Vehicle
+          <span>+ Add Vehicle</span>
         </button>
       </div>
 
-      {/* Grid listing */}
+      {/* Fleet Table */}
       {isLoading ? (
         <div className="text-center py-20">
           <span className="w-8 h-8 border-2 border-zinc-600 border-t-zinc-100 rounded-full animate-spin mx-auto block mb-4" />
-          <p className="text-sm text-zinc-400">Loading fleet registry...</p>
+          <p className="text-sm text-zinc-400">Loading Fleet Registry...</p>
         </div>
-      ) : vehicles.length === 0 ? (
+      ) : filteredVehicles.length === 0 ? (
         <div className="bg-zinc-900/50 border border-zinc-900 border-dashed rounded-xl p-12 text-center text-zinc-400">
-          <p className="mb-2">No vehicles registered in the fleet yet.</p>
-          <button 
-            onClick={() => setModalOpen(true)}
-            className="text-zinc-100 font-semibold underline hover:text-zinc-300 cursor-pointer"
-          >
-            Register your first vehicle
-          </button>
+          <p>No vehicles found in fleet registry.</p>
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {vehicles.map((v) => (
-            <div key={v.id} className="bg-zinc-900 border border-zinc-800 rounded-xl p-6 shadow-md hover:border-zinc-700 transition-colors">
-              <div className="flex justify-between items-start mb-4">
-                <div>
-                  <span className="text-xs uppercase tracking-wider text-zinc-500 font-bold">{v.type}</span>
-                  <h4 className="text-lg font-bold text-zinc-100 mt-0.5">{v.model}</h4>
-                </div>
-                <span className={`px-2 py-0.5 text-[10px] font-bold uppercase rounded ${
-                  v.status === 'Available' 
-                    ? 'bg-emerald-950 text-emerald-400 border border-emerald-900' 
-                    : v.status === 'On Trip'
-                      ? 'bg-blue-950 text-blue-400 border border-blue-900'
-                      : v.status === 'In Shop'
-                        ? 'bg-amber-950 text-amber-400 border border-amber-900'
-                        : 'bg-zinc-950 text-zinc-400 border border-zinc-900'
-                }`}>
-                  {v.status}
-                </span>
-              </div>
-
-              <div className="flex flex-col gap-2 text-xs border-t border-zinc-850 pt-4">
-                <div className="flex justify-between">
-                  <span className="text-zinc-500">Reg Plate</span>
-                  <span className="font-semibold text-zinc-350">{v.registration_number}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-zinc-500">Odometer</span>
-                  <span className="font-semibold text-zinc-350">{v.odometer.toLocaleString()} km</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-zinc-500">Max Capacity</span>
-                  <span className="font-semibold text-zinc-350">{v.max_load_capacity.toLocaleString()} kg</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-zinc-500">Cost</span>
-                  <span className="font-semibold text-zinc-350">₹{v.acquisition_cost.toLocaleString()}</span>
-                </div>
-              </div>
-            </div>
-          ))}
+        <div className="bg-zinc-900 border border-zinc-800 rounded-xl overflow-hidden shadow-md">
+          <table className="w-full text-left text-sm border-collapse">
+            <thead>
+              <tr className="bg-zinc-850/50 border-b border-zinc-800 text-zinc-500 text-xs uppercase tracking-wider">
+                <th className="p-4 font-semibold">Reg. No. (Unique)</th>
+                <th className="p-4 font-semibold">Name/Model</th>
+                <th className="p-4 font-semibold">Type</th>
+                <th className="p-4 font-semibold">Capacity</th>
+                <th className="p-4 font-semibold">Odometer</th>
+                <th className="p-4 font-semibold">Acq. Cost</th>
+                <th className="p-4 font-semibold">Status</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-zinc-850">
+              {filteredVehicles.map((v) => (
+                <tr key={v.id} className="hover:bg-zinc-850/10 transition-colors">
+                  <td className="p-4 text-zinc-200 font-bold tracking-wide">{v.registration_number}</td>
+                  <td className="p-4 text-zinc-400 font-semibold">{v.model}</td>
+                  <td className="p-4 text-zinc-450">{v.type}</td>
+                  <td className="p-4 text-zinc-300 font-medium">{formatCapacity(v.max_load_capacity)}</td>
+                  <td className="p-4 text-zinc-300 font-medium">{v.odometer.toLocaleString()}</td>
+                  <td className="p-4 text-zinc-300 font-medium">₹{v.acquisition_cost.toLocaleString('en-IN')}</td>
+                  <td className="p-4">
+                    <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-bold border ${
+                      v.status === 'Available' 
+                        ? 'bg-emerald-950/20 border-emerald-900/40 text-emerald-400'
+                        : v.status === 'On Trip'
+                          ? 'bg-blue-950/20 border-blue-900/40 text-blue-400'
+                          : v.status === 'In Shop'
+                            ? 'bg-amber-950/20 border-amber-900/40 text-amber-500'
+                            : 'bg-red-950/25 border-red-900/40 text-red-400'
+                    }`}>
+                      {v.status}
+                    </span>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
         </div>
       )}
 
+      {/* Footer Rule Text */}
+      <div className="text-xs text-amber-600 font-semibold leading-relaxed mt-2 select-none">
+        Rule: Registration No. must be unique • Retired/In Shop vehicles are hidden from Trip Dispatcher
+      </div>
+
       {/* Add Vehicle Modal */}
       {modalOpen && (
-        <div className="fixed inset-0 bg-black/75 flex justify-center items-center p-6 z-50 animate-fade-in">
-          <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-6 max-w-md w-full shadow-2xl animate-scale-in">
-            <div className="flex justify-between items-center mb-6">
-              <h3 className="text-lg font-bold">Register Vehicle</h3>
-              <button 
-                onClick={() => { setModalOpen(false); reset(); setError(null); }}
-                className="text-zinc-400 hover:text-zinc-200 text-lg cursor-pointer"
-              >
-                &times;
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 z-50 animate-fade-in">
+          <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-6 w-full max-w-md shadow-2xl shadow-black">
+            <header className="mb-6 flex justify-between items-center">
+              <h3 className="text-lg font-bold text-zinc-100">Add New Fleet Vehicle</h3>
+              <button onClick={() => setModalOpen(false)} className="text-zinc-550 hover:text-zinc-300 cursor-pointer">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                  <line x1="18" y1="6" x2="6" y2="18"></line>
+                  <line x1="6" y1="6" x2="18" y2="18"></line>
+                </svg>
               </button>
-            </div>
+            </header>
 
             {error && (
               <div className="mb-4 p-3 bg-red-950/20 border border-red-900/50 rounded-lg text-xs text-red-200">
@@ -177,88 +272,88 @@ export default function VehiclesPage() {
 
             <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-4">
               <div className="flex flex-col gap-1.5">
-                <label className="text-[10px] font-semibold uppercase tracking-wider text-zinc-400">Registration Plate</label>
-                <input 
-                  className="w-full px-3 py-2 bg-zinc-950 border border-zinc-800 rounded-lg text-zinc-100 placeholder-zinc-600 text-xs focus:outline-none focus:border-zinc-500"
-                  placeholder="KA-01-MJ-9999"
+                <label className="text-[10px] font-bold text-zinc-500 uppercase tracking-wider">Registration Number *</label>
+                <input
+                  type="text"
+                  placeholder="e.g. GJ01AB452"
+                  className="bg-zinc-950 border border-zinc-800 rounded-lg px-3 py-2.5 text-sm text-zinc-100 placeholder-zinc-600 focus:outline-none focus:border-zinc-500"
                   {...register('registration_number', { required: 'Reg number is required' })}
-                  disabled={createMutation.isPending}
                 />
-                {errors.registration_number && <span className="text-red-500 text-[10px]">{errors.registration_number.message}</span>}
+                {errors.registration_number && <span className="text-red-500 text-xs">{errors.registration_number.message}</span>}
+              </div>
+
+              <div className="flex flex-col gap-1.5">
+                <label className="text-[10px] font-bold text-zinc-500 uppercase tracking-wider">Name/Model *</label>
+                <input
+                  type="text"
+                  placeholder="e.g. VAN-05"
+                  className="bg-zinc-950 border border-zinc-800 rounded-lg px-3 py-2.5 text-sm text-zinc-100 placeholder-zinc-600 focus:outline-none focus:border-zinc-500"
+                  {...register('model', { required: 'Model is required' })}
+                />
+                {errors.model && <span className="text-red-500 text-xs">{errors.model.message}</span>}
               </div>
 
               <div className="grid grid-cols-2 gap-4">
                 <div className="flex flex-col gap-1.5">
-                  <label className="text-[10px] font-semibold uppercase tracking-wider text-zinc-400">Model Name</label>
-                  <input 
-                    className="w-full px-3 py-2 bg-zinc-950 border border-zinc-800 rounded-lg text-zinc-100 placeholder-zinc-600 text-xs focus:outline-none focus:border-zinc-500"
-                    placeholder="Tata Ace / Mahindra Bolero"
-                    {...register('model', { required: 'Model is required' })}
-                    disabled={createMutation.isPending}
-                  />
-                  {errors.model && <span className="text-red-500 text-[10px]">{errors.model.message}</span>}
-                </div>
-
-                <div className="flex flex-col gap-1.5">
-                  <label className="text-[10px] font-semibold uppercase tracking-wider text-zinc-400">Vehicle Type</label>
-                  <select 
-                    className="w-full px-3 py-2 bg-zinc-950 border border-zinc-800 rounded-lg text-zinc-100 text-xs focus:outline-none focus:border-zinc-500"
+                  <label className="text-[10px] font-bold text-zinc-500 uppercase tracking-wider">Type *</label>
+                  <select
+                    className="bg-zinc-950 border border-zinc-800 rounded-lg px-3 py-2.5 text-sm text-zinc-300 focus:outline-none focus:border-zinc-500 cursor-pointer"
                     {...register('type', { required: true })}
-                    disabled={createMutation.isPending}
                   >
-                    <option value="Mini Truck">Mini Truck</option>
                     <option value="Van">Van</option>
-                    <option value="Box Truck">Box Truck</option>
-                    <option value="Container">Container Truck</option>
+                    <option value="Truck">Truck</option>
+                    <option value="Mini">Mini</option>
                   </select>
                 </div>
+                <div className="flex flex-col gap-1.5">
+                  <label className="text-[10px] font-bold text-zinc-500 uppercase tracking-wider">Capacity (kg) *</label>
+                  <input
+                    type="number"
+                    placeholder="e.g. 500"
+                    className="bg-zinc-950 border border-zinc-800 rounded-lg px-3 py-2.5 text-sm text-zinc-100 placeholder-zinc-600 focus:outline-none focus:border-zinc-500"
+                    {...register('max_load_capacity', { required: 'Capacity is required', min: 1 })}
+                  />
+                  {errors.max_load_capacity && <span className="text-red-500 text-xs">{errors.max_load_capacity.message}</span>}
+                </div>
               </div>
 
-              <div className="grid grid-cols-3 gap-4">
+              <div className="grid grid-cols-2 gap-4">
                 <div className="flex flex-col gap-1.5">
-                  <label className="text-[10px] font-semibold uppercase tracking-wider text-zinc-400">Load Capacity (kg)</label>
-                  <input 
+                  <label className="text-[10px] font-bold text-zinc-500 uppercase tracking-wider">Odometer (km)</label>
+                  <input
                     type="number"
-                    step="any"
-                    className="w-full px-3 py-2 bg-zinc-950 border border-zinc-800 rounded-lg text-zinc-100 placeholder-zinc-650 text-xs focus:outline-none focus:border-zinc-500"
-                    placeholder="1200"
-                    {...register('max_load_capacity', { required: 'Capacity is required', min: 0 })}
-                    disabled={createMutation.isPending}
-                  />
-                </div>
-
-                <div className="flex flex-col gap-1.5">
-                  <label className="text-[10px] font-semibold uppercase tracking-wider text-zinc-400">Odometer (km)</label>
-                  <input 
-                    type="number"
-                    step="any"
-                    className="w-full px-3 py-2 bg-zinc-950 border border-zinc-800 rounded-lg text-zinc-100 placeholder-zinc-650 text-xs focus:outline-none focus:border-zinc-500"
-                    placeholder="0"
+                    placeholder="e.g. 74000"
+                    className="bg-zinc-950 border border-zinc-800 rounded-lg px-3 py-2.5 text-sm text-zinc-100 placeholder-zinc-600 focus:outline-none focus:border-zinc-500"
                     {...register('odometer')}
-                    disabled={createMutation.isPending}
                   />
                 </div>
-
                 <div className="flex flex-col gap-1.5">
-                  <label className="text-[10px] font-semibold uppercase tracking-wider text-zinc-400">Acquisition Cost (₹)</label>
-                  <input 
+                  <label className="text-[10px] font-bold text-zinc-500 uppercase tracking-wider">Acq. Cost (INR)</label>
+                  <input
                     type="number"
-                    step="any"
-                    className="w-full px-3 py-2 bg-zinc-950 border border-zinc-800 rounded-lg text-zinc-100 placeholder-zinc-650 text-xs focus:outline-none focus:border-zinc-500"
-                    placeholder="650000"
+                    placeholder="e.g. 620000"
+                    className="bg-zinc-950 border border-zinc-800 rounded-lg px-3 py-2.5 text-sm text-zinc-100 placeholder-zinc-600 focus:outline-none focus:border-zinc-500"
                     {...register('acquisition_cost')}
-                    disabled={createMutation.isPending}
                   />
                 </div>
               </div>
 
-              <button 
-                type="submit" 
-                className="w-full py-2.5 mt-4 bg-zinc-100 hover:bg-zinc-200 text-zinc-900 text-sm font-semibold rounded-lg transition-colors cursor-pointer"
-                disabled={createMutation.isPending}
-              >
-                {createMutation.isPending ? 'Registering...' : 'Register Vehicle'}
-              </button>
+              <div className="flex justify-end gap-3 mt-4">
+                <button
+                  type="button"
+                  onClick={() => setModalOpen(false)}
+                  className="px-4 py-2 bg-transparent border border-zinc-800 hover:bg-zinc-800 text-zinc-300 text-xs font-bold rounded-lg transition-colors cursor-pointer"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={createMutation.isPending}
+                  className="px-4 py-2 bg-[#b87310] hover:bg-[#a0620c] text-white text-xs font-bold rounded-lg transition-colors cursor-pointer"
+                >
+                  {createMutation.isPending ? 'Saving...' : 'Add Vehicle'}
+                </button>
+              </div>
             </form>
           </div>
         </div>
