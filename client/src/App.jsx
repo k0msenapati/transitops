@@ -9,6 +9,7 @@ import DashboardPage from './pages/DashboardPage'
 import VehiclesPage from './pages/VehiclesPage'
 import DriversPage from './pages/DriversPage'
 import TripsPage from './pages/TripsPage'
+import MaintenancePage from './pages/MaintenancePage'
 import NotFoundPage from './pages/NotFoundPage'
 
 export default function App() {
@@ -50,6 +51,12 @@ export default function App() {
         <Route path="/dashboard/trips">
           <DashboardLayout>
             <TripsPage />
+          </DashboardLayout>
+        </Route>
+
+        <Route path="/dashboard/maintenance">
+          <DashboardLayout>
+            <MaintenancePage />
           </DashboardLayout>
         </Route>
 
