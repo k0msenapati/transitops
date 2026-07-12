@@ -140,10 +140,10 @@ export default function DashboardLayout({ children }) {
       {/* Mobile Top Nav */}
       <header className="md:hidden bg-zinc-900 border-b border-zinc-800 px-6 py-4 flex justify-between items-center sticky top-0 z-40">
         <div className="flex items-center gap-3">
-          <div className="w-8 h-8 bg-zinc-800 rounded-lg flex items-center justify-center">
-            <div className="w-4 h-4 border-2 border-black rounded" />
+          <div className="w-8 h-8 bg-brand rounded-lg flex items-center justify-center font-black text-white text-base select-none shadow-md shadow-brand/20">
+            T
           </div>
-          <span className="font-bold">TransitOps</span>
+          <span className="font-extrabold tracking-tight text-zinc-100">TransitOps</span>
         </div>
         <button 
           onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
@@ -201,11 +201,11 @@ export default function DashboardLayout({ children }) {
         <div className="flex flex-col">
           {/* Logo */}
           <div className="flex items-center gap-3 mb-10">
-            <div className="w-8 h-8 bg-zinc-800 rounded-lg flex items-center justify-center">
-              <div className="w-4 h-4 border-2 border-black rounded" />
+            <div className="w-8 h-8 bg-brand rounded-lg flex items-center justify-center font-black text-white text-base select-none shadow-md shadow-brand/20">
+              T
             </div>
             <Link to="/">
-              <span className="font-bold text-lg tracking-tight cursor-pointer hover:text-zinc-300">TransitOps</span>
+              <span className="font-extrabold text-lg tracking-tight cursor-pointer hover:text-zinc-100 text-zinc-200">TransitOps</span>
             </Link>
           </div>
 
@@ -243,7 +243,7 @@ export default function DashboardLayout({ children }) {
           </div>
           <button 
             onClick={logout}
-            className="w-full py-2.5 bg-transparent border border-zinc-800 hover:bg-zinc-800 hover:border-zinc-500 text-zinc-100 text-xs font-bold rounded-lg transition-colors cursor-pointer"
+            className="w-full py-2.5 bg-red-950/20 border border-red-900/40 hover:bg-red-650 hover:text-white hover:border-red-600 text-red-400 text-xs font-bold rounded-lg transition-colors cursor-pointer"
           >
             Logout Console
           </button>
@@ -264,13 +264,13 @@ export default function DashboardLayout({ children }) {
           </div>
 
           {/* User profile */}
-          <div className="flex items-center gap-3">
-            <span className="text-xs text-zinc-300 font-semibold">{user.name}</span>
-            <span className="text-[10px] bg-zinc-900 border border-zinc-850 text-zinc-400 font-bold px-2 py-0.5 rounded uppercase tracking-wider">
+          <div className="flex items-center gap-3 cursor-pointer group">
+            <span className="text-xs text-zinc-300 font-semibold group-hover:text-zinc-100 transition-colors">{user.name}</span>
+            <span className="text-[9px] header-role-badge font-black px-2.5 py-0.5 rounded-full uppercase tracking-wider shadow-sm transition-colors">
               {formatRole(user.role)}
             </span>
-            <div className="w-8 h-8 rounded-full bg-zinc-800 border border-zinc-700 text-zinc-150 font-bold text-xs flex items-center justify-center shadow">
-              {user.name.split(' ').map(n => n[0]).join('')}
+            <div className="w-8 h-8 rounded-full header-avatar font-black text-xs flex items-center justify-center shadow-inner transition-colors">
+              {user.name.split(' ').map(n => n[0]).join('').toUpperCase()}
             </div>
           </div>
         </header>

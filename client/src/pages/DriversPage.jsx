@@ -258,17 +258,22 @@ export default function DriversPage() {
                 <tr 
                   key={d.id} 
                   onClick={() => setSelectedDriverId(selectedDriverId === d.id ? null : d.id)}
-                  className={`transition-colors cursor-pointer ${
-                    selectedDriverId === d.id ? 'bg-zinc-850/40' : 'hover:bg-zinc-850/10'
+                  className={`transition-all cursor-pointer ${
+                    selectedDriverId === d.id ? 'row-selected' : 'hover:bg-zinc-850/10'
                   }`}
                 >
                   <td className="p-4">
-                    <input 
-                      type="radio" 
-                      checked={selectedDriverId === d.id}
-                      onChange={() => {}} // Controlled by row click
-                      className="cursor-pointer accent-[#b87310]"
-                    />
+                    <div className="flex items-center justify-center">
+                      <div className={`custom-select-box cursor-pointer ${
+                        selectedDriverId === d.id ? 'selected' : ''
+                      }`}>
+                        {selectedDriverId === d.id && (
+                          <svg className="w-3.5 h-3.5 text-zinc-950 font-black" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="4">
+                            <polyline points="20 6 9 17 4 12"></polyline>
+                          </svg>
+                        )}
+                      </div>
+                    </div>
                   </td>
                   <td className="p-4 text-zinc-200 font-bold">{d.name}</td>
                   <td className="p-4 text-zinc-400 font-semibold">{d.license_number}</td>

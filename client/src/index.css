@@ -87,14 +87,16 @@
 }
 
 /* ----------------------------------------------------
-   Sidebar Navigation Theme Overrides
+   Sidebar Navigation Theme Overrides (Replacing white elements)
    ---------------------------------------------------- */
 
-/* Desktop active item styling overrides */
-aside nav a div.bg-zinc-100.text-zinc-900 {
+/* Desktop active item styling overrides (no solid white block) */
+aside nav a div.bg-zinc-100.text-zinc-900,
+aside nav div.bg-zinc-100.text-zinc-900,
+.bg-zinc-100.text-zinc-900 {
   background-color: var(--brand-glow) !important;
   color: var(--brand-color) !important;
-  border-left: 3px solid var(--brand-color) !important;
+  border-left: 3.5px solid var(--brand-color) !important;
   border-top-left-radius: 0px !important;
   border-bottom-left-radius: 0px !important;
   box-shadow: none !important;
@@ -104,6 +106,44 @@ aside nav a div.bg-zinc-100.text-zinc-900 {
 div.animate-fade-in a div.bg-zinc-800.text-zinc-100 {
   background-color: var(--brand-glow) !important;
   color: var(--brand-color) !important;
+}
+
+/* Override all plain white button elements to use brand theme colors */
+button.bg-zinc-100.text-zinc-900,
+button.bg-zinc-100.hover\:bg-white.text-zinc-900,
+button.bg-zinc-100.hover\:bg-zinc-200.text-zinc-900 {
+  background-color: var(--brand-color) !important;
+  color: #ffffff !important;
+  box-shadow: 0 4px 6px -1px var(--brand-glow) !important;
+  border: 1px solid var(--brand-color) !important;
+}
+
+button.bg-zinc-100.text-zinc-900:hover,
+button.bg-zinc-100.hover\:bg-white.text-zinc-900:hover,
+button.bg-zinc-100.hover\:bg-zinc-200.text-zinc-900:hover {
+  background-color: var(--brand-hover) !important;
+  color: #ffffff !important;
+  border-color: var(--brand-hover) !important;
+}
+
+/* ----------------------------------------------------
+   Header Avatar & Role Badge Overrides
+   ---------------------------------------------------- */
+
+.header-role-badge {
+  background-color: color-mix(in srgb, var(--brand-color) 12%, transparent) !important;
+  color: var(--brand-color) !important;
+  border: 1px solid color-mix(in srgb, var(--brand-color) 35%, transparent) !important;
+}
+
+.header-avatar {
+  background-color: color-mix(in srgb, var(--brand-color) 15%, transparent) !important;
+  color: var(--brand-color) !important;
+  border: 1px solid color-mix(in srgb, var(--brand-color) 30%, transparent) !important;
+}
+
+.group:hover .header-avatar {
+  border-color: color-mix(in srgb, var(--brand-color) 60%, transparent) !important;
 }
 
 /* ----------------------------------------------------
@@ -127,7 +167,6 @@ div.animate-fade-in a div.bg-zinc-800.text-zinc-100 {
 .text-emerald-450 { color: #10b981 !important; }
 .bg-emerald-955\/20 { background-color: rgba(16, 185, 129, 0.15) !important; }
 .bg-emerald-950\/20 { background-color: rgba(16, 185, 129, 0.1) !important; }
-.bg-emerald-955\/25 { background-color: rgba(16, 185, 129, 0.18) !important; }
 .bg-emerald-950\/25 { background-color: rgba(16, 185, 129, 0.12) !important; }
 .border-emerald-900\/40 { border-color: rgba(16, 185, 129, 0.25) !important; }
 
@@ -243,3 +282,46 @@ input:focus, select:focus, textarea:focus {
 ::-webkit-scrollbar-thumb:hover {
   background: #2d2d34;
 }
+
+/* Helper classes for premium elements */
+.bg-brand {
+  background-color: var(--brand-color) !important;
+}
+.border-brand {
+  border-color: var(--brand-color) !important;
+}
+.text-brand {
+  color: var(--brand-color) !important;
+}
+
+/* Premium Selected Row Highlight */
+.row-selected td {
+  background-color: var(--brand-glow) !important;
+}
+
+/* Custom checkbox select buttons */
+.custom-select-box {
+  width: 18px !important;
+  height: 18px !important;
+  border-radius: 4px !important;
+  border: 1.5px solid #52525b !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  transition: all 0.15s ease-in-out !important;
+  background-color: #08080a !important;
+}
+
+.custom-select-box.selected {
+  background-color: var(--brand-color) !important;
+  border-color: var(--brand-color) !important;
+  box-shadow: 0 0 8px var(--brand-glow) !important;
+}
+
+.custom-select-box:hover {
+  border-color: var(--brand-color) !important;
+  transform: scale(1.05);
+}
+
+
+
