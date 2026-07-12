@@ -2,7 +2,7 @@ from typing import Generic, TypeVar, Type, Any
 from sqlalchemy.orm import Session
 from app.core.database import Base
 
-ModelType = TypeVar("ModelType", bound=Base)
+ModelType = TypeVar("ModelType", bound=Base)  # pyright: ignore[reportInvalidTypeForm]
 
 
 class BaseRepository(Generic[ModelType]):
