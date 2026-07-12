@@ -6,16 +6,12 @@ from app.models.driver import DriverStatus
 from app.schemas.driver import DriverCreate, DriverUpdate, DriverResponse
 from app.services.fleet import fleet_service
 from app.repository.driver import driver_repo
-from app.utils.dependencies import RoleRequired
+from app.utils.dependencies import RoleRequired, get_current_user
 
-router = APIRouter(
-    dependencies=[
-        Depends(RoleRequired([UserRole.FLEET_MANAGER, UserRole.SAFETY_OFFICER]))
-    ]
-)
+router = APIRouter()
 
 
-@router.get("", response_model=list[DriverResponse])
+@router.get("", response_model=list[DriverResponse], dependencies=[Depends(get_current_user)])
 def get_drivers(
     status: DriverStatus | None = None,
     category: str | None = None,
@@ -24,7 +20,7 @@ def get_drivers(
     return driver_repo.get_filtered_drivers(db, status=status, category=category)
 
 
-@router.post("", response_model=DriverResponse, status_code=status.HTTP_201_CREATED)
+@router.post("", response_model=DriverResponse, status_code=status.HTTP_201_CREATED, dependencies=[Depends(RoleRequired([UserRole.FLEET_MANAGER, UserRole.SAFETY_OFFICER]))])
 def create_driver(driver_in: DriverCreate, db: Session = Depends(get_db)):
     try:
         return fleet_service.register_driver(db, driver_in)
@@ -32,7 +28,7 @@ def create_driver(driver_in: DriverCreate, db: Session = Depends(get_db)):
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
 
 
-@router.get("/{id}", response_model=DriverResponse)
+@router.get("/{id}", response_model=DriverResponse, dependencies=[Depends(get_current_user)])
 def get_driver_by_id(id: int, db: Session = Depends(get_db)):
     driver = driver_repo.get(db, id)
     if not driver:
@@ -42,7 +38,7 @@ def get_driver_by_id(id: int, db: Session = Depends(get_db)):
     return driver
 
 
-@router.put("/{id}", response_model=DriverResponse)
+@router.put("/{id}", response_model=DriverResponse, dependencies=[Depends(RoleRequired([UserRole.FLEET_MANAGER, UserRole.SAFETY_OFFICER]))])
 def update_driver(id: int, driver_in: DriverUpdate, db: Session = Depends(get_db)):
     driver = driver_repo.get(db, id)
     if not driver:
@@ -62,7 +58,7 @@ def update_driver(id: int, driver_in: DriverUpdate, db: Session = Depends(get_db
     return driver_repo.update(db, driver, driver_in.model_dump(exclude_unset=True))
 
 
-@router.delete("/{id}", response_model=DriverResponse)
+@router.delete("/{id}", response_model=DriverResponse, dependencies=[Depends(RoleRequired([UserRole.FLEET_MANAGER, UserRole.SAFETY_OFFICER]))])
 def delete_driver(id: int, db: Session = Depends(get_db)):
     driver = driver_repo.get(db, id)
     if not driver:
@@ -70,3 +66,4 @@ def delete_driver(id: int, db: Session = Depends(get_db)):
             status_code=status.HTTP_404_NOT_FOUND, detail="Driver not found"
         )
     return driver_repo.remove(db, id)
+

@@ -54,9 +54,9 @@ def test_vehicles_crud_and_rbac(client):
     )
     assert res_create_dup.status_code == 400
 
-    # 4. List vehicles as Dispatcher (Should be Forbidden 403)
-    res_list_denied = client.get("/api/vehicles", headers=headers_disp)
-    assert res_list_denied.status_code == 403
+    # 4. List vehicles as Dispatcher (Should be Allowed 200)
+    res_list_ok = client.get("/api/vehicles", headers=headers_disp)
+    assert res_list_ok.status_code == 200
 
     # 5. List vehicles as Fleet Manager
     res_list = client.get("/api/vehicles", headers=headers_fm)

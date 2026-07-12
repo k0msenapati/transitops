@@ -3,48 +3,6 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { useForm } from 'react-hook-form'
 import { useAuth } from '../context/AuthContext'
 
-const MOCK_VEHICLES = [
-  { id: 'v1', model: 'VAN-05', max_load_capacity: 500, status: 'Available' },
-  { id: 'v2', model: 'TRUCK-11', max_load_capacity: 5000, status: 'On Trip' },
-  { id: 'v3', model: 'MINI-03', max_load_capacity: 1000, status: 'In Shop' },
-  { id: 'v4', model: 'VAN-09', max_load_capacity: 750, status: 'Retired' },
-  { id: 'v5', model: 'TRUCK-12', max_load_capacity: 10000, status: 'Available' }
-]
-
-const MOCK_DRIVERS = [
-  { id: 'd1', name: 'Alex', status: 'Available', license_expiry_date: '2028-12-31' },
-  { id: 'd2', name: 'John', status: 'Suspended', license_expiry_date: '2025-03-15' }, // Expired
-  { id: 'd3', name: 'Priya', status: 'On Trip', license_expiry_date: '2029-09-30' },
-  { id: 'd4', name: 'Suresh', status: 'Off Duty', license_expiry_date: '2027-01-20' }
-]
-
-const MOCK_TRIPS = [
-  {
-    id: 'TR001',
-    route: 'Ahmedabad Depot → Anandhand Hub',
-    vehicle: 'VAN-05',
-    driver: 'Alex',
-    status: 'On Trip',
-    eta: '45 min'
-  },
-  {
-    id: 'TR004',
-    route: 'Noida Industrial Area → Sonipat Warehouse',
-    vehicle: 'TRUCK-12',
-    driver: 'Suresh',
-    status: 'Draft',
-    eta: 'Awaiting driver'
-  },
-  {
-    id: 'TR006',
-    route: 'Manesar → Kalka Depot',
-    vehicle: '—',
-    driver: '—',
-    status: 'Cancelled',
-    eta: 'Route unsafe'
-  }
-]
-
 export default function TripsPage() {
   const { token, user } = useAuth()
   const queryClient = useQueryClient()
@@ -52,8 +10,8 @@ export default function TripsPage() {
   
   const { register, handleSubmit, watch, reset, setValue, formState: { errors } } = useForm({
     defaultValues: {
-      vehicle_model: '',
-      driver_name: '',
+      vehicle_id: '',
+      driver_id: '',
       route: '',
       cargo_weight: 0,
       planned_distance: 0
@@ -61,12 +19,38 @@ export default function TripsPage() {
   })
 
   // Watch inputs for dynamic warnings
-  const watchVehicle = watch('vehicle_model')
-  const watchDriver = watch('driver_name')
+  const watchVehicleId = watch('vehicle_id')
+  const watchDriverId = watch('driver_id')
   const watchCargoWeight = watch('cargo_weight')
 
   // Enforce access control guard: dispatcher only
   const isAuthorized = user?.role === 'dispatcher'
+
+  // Fetch Vehicles
+  const { data: dbVehicles = [] } = useQuery({
+    queryKey: ['vehicles', token],
+    queryFn: async () => {
+      const res = await fetch('/api/vehicles', {
+        headers: { Authorization: `Bearer ${token}` }
+      })
+      if (!res.ok) throw new Error('Failed to fetch vehicles')
+      return res.json()
+    },
+    enabled: !!token
+  })
+
+  // Fetch Drivers
+  const { data: dbDrivers = [] } = useQuery({
+    queryKey: ['drivers', token],
+    queryFn: async () => {
+      const res = await fetch('/api/drivers', {
+        headers: { Authorization: `Bearer ${token}` }
+      })
+      if (!res.ok) throw new Error('Failed to fetch drivers')
+      return res.json()
+    },
+    enabled: !!token
+  })
 
   // Fetch live trips from DB
   const { data: dbTrips = [], isLoading: tripsLoading } = useQuery({
@@ -100,6 +84,8 @@ export default function TripsPage() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['trips'] })
+      queryClient.invalidateQueries({ queryKey: ['vehicles'] })
+      queryClient.invalidateQueries({ queryKey: ['drivers'] })
       reset()
       setError(null)
     },
@@ -107,8 +93,8 @@ export default function TripsPage() {
   })
 
   // Calculations for dynamic warnings
-  const selectedVehicleObj = MOCK_VEHICLES.find(v => v.model === watchVehicle)
-  const selectedDriverObj = MOCK_DRIVERS.find(d => d.name === watchDriver)
+  const selectedVehicleObj = dbVehicles.find(v => String(v.id) === String(watchVehicleId))
+  const selectedDriverObj = dbDrivers.find(d => String(d.id) === String(watchDriverId))
 
   const cargoWeightVal = parseFloat(watchCargoWeight || 0)
   const isCapacityExceeded = selectedVehicleObj && cargoWeightVal > selectedVehicleObj.max_load_capacity
@@ -119,35 +105,37 @@ export default function TripsPage() {
     selectedDriverObj.status === 'Suspended' || new Date(selectedDriverObj.license_expiry_date) < today
   )
 
-  const canDispatch = !isCapacityExceeded && !isDriverCredentialsBlocked && watchVehicle && watchDriver && watch('route')
+  const canDispatch = !isCapacityExceeded && !isDriverCredentialsBlocked && watchVehicleId && watchDriverId && watch('route')
 
   const onSubmit = (data) => {
     setError(null)
+    let source = "Gandhinagar Depot"
+    let destination = data.route
+    if (data.route.includes("→")) {
+      const parts = data.route.split("→")
+      source = parts[0].trim()
+      destination = parts[1].trim()
+    }
+
     createMutation.mutate({
-      vehicle_id: selectedVehicleObj ? 1 : 0, // Mock id mapping
-      driver_id: selectedDriverObj ? 1 : 0,
+      vehicle_id: parseInt(data.vehicle_id),
+      driver_id: parseInt(data.driver_id),
       cargo_weight: parseFloat(data.cargo_weight),
       planned_distance: parseFloat(data.planned_distance),
-      destination: data.route
+      source,
+      destination
     })
   }
 
-  // Combine Mock & DB trips
-  const allTrips = [...MOCK_TRIPS]
-  // Map DB trips to UI matching format
-  dbTrips.forEach(dbT => {
-    const formattedDbT = {
-      id: `TR${String(dbT.id).padStart(3, '0')}`,
-      route: dbT.destination || 'Custom route',
-      vehicle: dbT.vehicle?.model || 'Vehicle',
-      driver: dbT.driver?.name || 'Driver',
-      status: dbT.status,
-      eta: dbT.status === 'On Trip' ? 'Active' : '—'
-    }
-    if (!allTrips.some(t => t.id === formattedDbT.id)) {
-      allTrips.push(formattedDbT)
-    }
-  })
+  // Format DB trips
+  const allTrips = dbTrips.map(dbT => ({
+    id: `TR${String(dbT.id).padStart(3, '0')}`,
+    route: `${dbT.source} → ${dbT.destination}`,
+    vehicle: dbT.vehicle?.model || `Vehicle #${dbT.vehicle_id}`,
+    driver: dbT.driver?.name || `Driver #${dbT.driver_id}`,
+    status: dbT.status === 'Dispatched' ? 'On Trip' : dbT.status,
+    eta: dbT.status === 'Dispatched' ? `${dbT.eta_minutes || 45} min` : '—'
+  }))
 
   if (!isAuthorized) {
     return (
@@ -193,12 +181,15 @@ export default function TripsPage() {
                 <label className="text-[10px] font-bold text-zinc-500 uppercase tracking-wider">Vehicle</label>
                 <select
                   className="bg-zinc-950 border border-zinc-850 rounded-lg px-3 py-2.5 text-sm text-zinc-200 focus:outline-none focus:border-zinc-500 cursor-pointer"
-                  {...register('vehicle_model', { required: true })}
+                  {...register('vehicle_id', { required: true })}
                 >
                   <option value="">Select vehicle...</option>
-                  {MOCK_VEHICLES.map(v => (
-                    <option key={v.id} value={v.model}>{v.model} ({v.status})</option>
-                  ))}
+                  {dbVehicles
+                    .filter(v => v.status !== 'In Shop' && v.status !== 'Retired')
+                    .map(v => (
+                      <option key={v.id} value={v.id}>{v.model} ({v.status})</option>
+                    ))
+                  }
                 </select>
               </div>
 
@@ -207,11 +198,11 @@ export default function TripsPage() {
                 <label className="text-[10px] font-bold text-zinc-500 uppercase tracking-wider">Driver</label>
                 <select
                   className="bg-zinc-950 border border-zinc-850 rounded-lg px-3 py-2.5 text-sm text-zinc-200 focus:outline-none focus:border-zinc-500 cursor-pointer"
-                  {...register('driver_name', { required: true })}
+                  {...register('driver_id', { required: true })}
                 >
                   <option value="">Select driver...</option>
-                  {MOCK_DRIVERS.map(d => (
-                    <option key={d.id} value={d.name}>{d.name} ({d.status})</option>
+                  {dbDrivers.map(d => (
+                    <option key={d.id} value={d.id}>{d.name} ({d.status})</option>
                   ))}
                 </select>
               </div>

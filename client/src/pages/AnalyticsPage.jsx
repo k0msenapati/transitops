@@ -2,13 +2,6 @@ import { useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { useAuth } from '../context/AuthContext'
 
-const MOCK_VEHICLE_REPORTS = [
-  { vehicle_id: 1, registration_number: 'GJ01AB452', model: 'VAN-05', type: 'Van', distance_travelled: 74000, revenue: 1200000, expenses: 34070, net_profit: 1165930, fuel_efficiency: 12.4, roi: 18.2 },
-  { vehicle_id: 2, registration_number: 'GJ01AB998', model: 'TRUCK-11', type: 'Truck', distance_travelled: 182000, revenue: 4500000, expenses: 180000, net_profit: 4320000, fuel_efficiency: 4.8, roi: 12.1 },
-  { vehicle_id: 3, registration_number: 'GJ01AB1120', model: 'MINI-03', type: 'Mini', distance_travelled: 66000, revenue: 980000, expenses: 45000, net_profit: 935000, fuel_efficiency: 14.5, roi: 22.8 },
-  { vehicle_id: 4, registration_number: 'GJ01AB0008', model: 'VAN-09', type: 'Van', distance_travelled: 241900, revenue: 2100000, expenses: 59000, net_profit: 2041000, fuel_efficiency: 11.2, roi: 34.6 }
-]
-
 export default function AnalyticsPage() {
   const { token, user } = useAuth()
   const [search, setSearch] = useState('')
@@ -43,13 +36,8 @@ export default function AnalyticsPage() {
     )
   }
 
-  // Combine Mock & DB reports
-  const allReports = [...MOCK_VEHICLE_REPORTS]
-  dbReports.forEach(dbR => {
-    if (!allReports.some(r => r.registration_number.toLowerCase() === dbR.registration_number.toLowerCase())) {
-      allReports.push(dbR)
-    }
-  })
+  // Use DB reports
+  const allReports = dbReports
 
   const filteredReports = allReports.filter(r => 
     r.registration_number.toLowerCase().includes(search.toLowerCase()) ||

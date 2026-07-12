@@ -3,37 +3,6 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { useForm } from 'react-hook-form'
 import { useAuth } from '../context/AuthContext'
 
-const MOCK_VEHICLES = [
-  { id: 'v1', model: 'VAN-05' },
-  { id: 'v2', model: 'TRUCK-11' },
-  { id: 'v3', model: 'MINI-03' },
-  { id: 'v4', model: 'VAN-09' }
-]
-
-const MOCK_LOGS = [
-  {
-    id: 'l1',
-    vehicle: 'VAN-05',
-    service: 'Oil Change',
-    cost: 2500,
-    status: 'In Shop'
-  },
-  {
-    id: 'l2',
-    vehicle: 'TRUCK-11',
-    service: 'Engine Repair',
-    cost: 18000,
-    status: 'Completed'
-  },
-  {
-    id: 'l3',
-    vehicle: 'MINI-03',
-    service: 'Tyre Replace',
-    cost: 4200,
-    status: 'In Shop'
-  }
-]
-
 export default function MaintenancePage() {
   const { token, user } = useAuth()
   const queryClient = useQueryClient()
@@ -41,7 +10,7 @@ export default function MaintenancePage() {
   
   const { register, handleSubmit, reset, formState: { errors } } = useForm({
     defaultValues: {
-      vehicle_model: '',
+      vehicle_id: '',
       service_type: 'Oil Change',
       cost: 0,
       date: new Date().toISOString().split('T')[0],
@@ -51,6 +20,19 @@ export default function MaintenancePage() {
 
   // Enforce access control guard: fleet_manager only
   const isAuthorized = user?.role === 'fleet_manager'
+
+  // Fetch Vehicles for assignment
+  const { data: dbVehicles = [] } = useQuery({
+    queryKey: ['vehicles', token],
+    queryFn: async () => {
+      const res = await fetch('/api/vehicles', {
+        headers: { Authorization: `Bearer ${token}` }
+      })
+      if (!res.ok) throw new Error('Failed to fetch vehicles')
+      return res.json()
+    },
+    enabled: !!token
+  })
 
   // Fetch Maintenance Logs from DB
   const { data: dbLogs = [], isLoading: logsLoading } = useQuery({
@@ -95,28 +77,21 @@ export default function MaintenancePage() {
   const onSubmit = (data) => {
     setError(null)
     scheduleMutation.mutate({
-      vehicle_id: 1, // Mock DB link
-      service_type: data.service_type,
+      vehicle_id: parseInt(data.vehicle_id),
+      description: data.service_type,
       cost: parseFloat(data.cost || 0),
-      description: `Scheduled maintenance: ${data.service_type}`,
       start_date: data.date
     })
   }
 
-  // Combine Mock & DB logs
-  const allLogs = [...MOCK_LOGS]
-  dbLogs.forEach(dbL => {
-    const formattedDbL = {
-      id: dbL.id,
-      vehicle: dbL.vehicle?.model || 'Vehicle',
-      service: dbL.service_type,
-      cost: dbL.cost,
-      status: dbL.end_date ? 'Completed' : 'In Shop'
-    }
-    if (!allLogs.some(log => log.vehicle === formattedDbL.vehicle && log.service === formattedDbL.service)) {
-      allLogs.push(formattedDbL)
-    }
-  })
+  // Map DB logs
+  const allLogs = dbLogs.map(dbL => ({
+    id: dbL.id,
+    vehicle: dbL.vehicle?.model || `Vehicle #${dbL.vehicle_id}`,
+    service: dbL.description,
+    cost: dbL.cost,
+    status: dbL.status === 'Active' ? 'In Shop' : 'Completed'
+  }))
 
   if (!isAuthorized) {
     return (
@@ -153,11 +128,11 @@ export default function MaintenancePage() {
                 <label className="text-[10px] font-bold text-zinc-500 uppercase tracking-wider">Vehicle</label>
                 <select
                   className="bg-zinc-950 border border-zinc-850 rounded-lg px-3 py-2.5 text-sm text-zinc-200 focus:outline-none cursor-pointer"
-                  {...register('vehicle_model', { required: true })}
+                  {...register('vehicle_id', { required: 'Vehicle is required' })}
                 >
                   <option value="">Select vehicle...</option>
-                  {MOCK_VEHICLES.map(v => (
-                    <option key={v.id} value={v.model}>{v.model}</option>
+                  {dbVehicles.map(v => (
+                    <option key={v.id} value={v.id}>{v.model} ({v.registration_number})</option>
                   ))}
                 </select>
               </div>

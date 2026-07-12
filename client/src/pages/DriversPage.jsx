@@ -3,53 +3,6 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { useForm } from 'react-hook-form'
 import { useAuth } from '../context/AuthContext'
 
-const MOCK_DRIVERS = [
-  {
-    id: 'd1',
-    name: 'Alex',
-    license_number: 'DL-199212',
-    license_category: 'LMV',
-    license_expiry_date: '2028-12-31',
-    contact_number: '98765xxxxx',
-    trip_completion_rate: 96,
-    safety_score: 95,
-    status: 'Available'
-  },
-  {
-    id: 'd2',
-    name: 'John',
-    license_number: 'DL-114420',
-    license_category: 'HMV',
-    license_expiry_date: '2025-03-15', // Expired
-    contact_number: '98220xxxxx',
-    trip_completion_rate: 92,
-    safety_score: 81,
-    status: 'Suspended'
-  },
-  {
-    id: 'd3',
-    name: 'Priya',
-    license_number: 'DL-170251',
-    license_category: 'LMV',
-    license_expiry_date: '2029-09-30',
-    contact_number: '99981xxxxx',
-    trip_completion_rate: 99,
-    safety_score: 90,
-    status: 'On Trip'
-  },
-  {
-    id: 'd4',
-    name: 'Suresh',
-    license_number: 'DL-110045',
-    license_category: 'HMV',
-    license_expiry_date: '2027-01-20',
-    contact_number: '99401xxxxx',
-    trip_completion_rate: 88,
-    safety_score: 85,
-    status: 'Off Duty'
-  }
-]
-
 export default function DriversPage() {
   const { token, user } = useAuth()
   const queryClient = useQueryClient()
@@ -109,6 +62,32 @@ export default function DriversPage() {
     }
   })
 
+  // Update Status Mutation
+  const updateStatusMutation = useMutation({
+    mutationFn: async ({ id, status }) => {
+      const res = await fetch(`/api/drivers/${id}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`
+        },
+        body: JSON.stringify({ status })
+      })
+      if (!res.ok) {
+        const errData = await res.json().catch(() => ({}))
+        throw new Error(errData.detail || 'Failed to update driver status.')
+      }
+      return res.json()
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['drivers'] })
+      setSelectedDriverId(null)
+    },
+    onError: (err) => {
+      alert(err.message)
+    }
+  })
+
   const onSubmit = (data) => {
     setError(null)
     createMutation.mutate({
@@ -118,25 +97,12 @@ export default function DriversPage() {
     })
   }
 
-  // Quick Status Toggle Mutation (mock/local client toggle or endpoint hit if needed)
-  // Let's implement local and server status change if possible, but keep it local-fallback safe.
   const handleToggleStatus = (newStatus) => {
     if (!selectedDriverId) return
-    
-    // If it's a mock driver, we can simulate success by updating local or displaying a success alert
-    // If it's a DB driver we'd patch, but since we want to be safe, we'll alert or update state.
-    // For simplicity, let's log or update local state representation or show a confirmation.
-    alert(`Status for selected driver changed to: ${newStatus}`)
-    setSelectedDriverId(null)
+    updateStatusMutation.mutate({ id: selectedDriverId, status: newStatus })
   }
 
-  // Combine Mock and DB drivers
-  const allDrivers = [...MOCK_DRIVERS]
-  dbDrivers.forEach(dbD => {
-    if (!allDrivers.some(d => d.license_number.toLowerCase() === dbD.license_number.toLowerCase())) {
-      allDrivers.push(dbD)
-    }
-  })
+  const allDrivers = dbDrivers
 
   // Apply filters
   const filteredDrivers = allDrivers.filter(d => {

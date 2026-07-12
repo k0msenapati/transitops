@@ -3,49 +3,6 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { useForm } from 'react-hook-form'
 import { useAuth } from '../context/AuthContext'
 
-const MOCK_VEHICLES = [
-  {
-    id: 'm1',
-    registration_number: 'GJ01AB452',
-    model: 'VAN-05',
-    type: 'Van',
-    max_load_capacity: 500,
-    odometer: 74000,
-    acquisition_cost: 620000,
-    status: 'Available'
-  },
-  {
-    id: 'm2',
-    registration_number: 'GJ01AB998',
-    model: 'TRUCK-11',
-    type: 'Truck',
-    max_load_capacity: 5000,
-    odometer: 182000,
-    acquisition_cost: 2450000,
-    status: 'On Trip'
-  },
-  {
-    id: 'm3',
-    registration_number: 'GJ01AB1120',
-    model: 'MINI-03',
-    type: 'Mini',
-    max_load_capacity: 1000,
-    odometer: 66000,
-    acquisition_cost: 410000,
-    status: 'In Shop'
-  },
-  {
-    id: 'm4',
-    registration_number: 'GJ01AB0008',
-    model: 'VAN-09',
-    type: 'Van',
-    max_load_capacity: 750,
-    odometer: 241900,
-    acquisition_cost: 590000,
-    status: 'Retired'
-  }
-]
-
 export default function VehiclesPage() {
   const { token, user } = useAuth()
   const queryClient = useQueryClient()
@@ -112,13 +69,7 @@ export default function VehiclesPage() {
     })
   }
 
-  // Combine Mock vehicles & DB vehicles (ensuring no duplicate reg numbers)
-  const allVehicles = [...MOCK_VEHICLES]
-  dbVehicles.forEach(dbV => {
-    if (!allVehicles.some(v => v.registration_number.toLowerCase() === dbV.registration_number.toLowerCase())) {
-      allVehicles.push(dbV)
-    }
-  })
+  const allVehicles = dbVehicles
 
   // Apply filters
   const filteredVehicles = allVehicles.filter(v => {

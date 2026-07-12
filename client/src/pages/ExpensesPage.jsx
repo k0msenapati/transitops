@@ -3,51 +3,6 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { useForm } from 'react-hook-form'
 import { useAuth } from '../context/AuthContext'
 
-const MOCK_FUEL_LOGS = [
-  {
-    id: 'f1',
-    vehicle: 'VAN-05',
-    date: '05 Jul 2026',
-    liters: 42,
-    cost: 3850
-  },
-  {
-    id: 'f2',
-    vehicle: 'TRUCK-11',
-    date: '06 Jul 2026',
-    liters: 90,
-    cost: 8400
-  },
-  {
-    id: 'f3',
-    vehicle: 'MINI-03',
-    date: '05 Jul 2026',
-    liters: 25,
-    cost: 2050
-  }
-]
-
-const MOCK_OTHER_EXPENSES = [
-  {
-    id: 'o1',
-    trip_id: 'TR001',
-    vehicle: 'VAN-05',
-    toll: 120,
-    other: 0,
-    total: 120,
-    status: 'Available'
-  },
-  {
-    id: 'o2',
-    trip_id: 'TR002',
-    vehicle: 'TRK-12',
-    toll: 340,
-    other: 150,
-    total: 18000, // Total trip cost or maintenance item included
-    status: 'Completed'
-  }
-]
-
 export default function ExpensesPage() {
   const { token, user } = useAuth()
   const queryClient = useQueryClient()
@@ -62,6 +17,19 @@ export default function ExpensesPage() {
 
   // Enforce access control guard: financial_analyst only
   const isAuthorized = user?.role === 'financial_analyst'
+
+  // Fetch Vehicles
+  const { data: dbVehicles = [] } = useQuery({
+    queryKey: ['vehicles', token],
+    queryFn: async () => {
+      const res = await fetch('/api/vehicles', {
+        headers: { Authorization: `Bearer ${token}` }
+      })
+      if (!res.ok) throw new Error('Failed to fetch vehicles')
+      return res.json()
+    },
+    enabled: !!token
+  })
 
   // Fetch Fuel Logs
   const { data: dbFuel = [], isLoading: isLoadingFuel } = useQuery({
@@ -133,7 +101,7 @@ export default function ExpensesPage() {
   const onFuelSubmit = (data) => {
     setError(null)
     addFuelMutation.mutate({
-      vehicle_id: 1, // Mock DB link
+      vehicle_id: parseInt(data.vehicle_id),
       liters: parseFloat(data.liters),
       cost: parseFloat(data.cost),
       date: data.date
@@ -143,43 +111,37 @@ export default function ExpensesPage() {
   const onExpenseSubmit = (data) => {
     setError(null)
     addExpenseMutation.mutate({
-      vehicle_id: 1,
-      type: 'Toll',
+      vehicle_id: parseInt(data.vehicle_id),
+      type: data.type || 'Toll',
       cost: parseFloat(data.cost),
       description: data.description,
       date: data.date
     })
   }
 
-  // Combine Mock & DB fuel logs
-  const allFuel = [...MOCK_FUEL_LOGS]
-  dbFuel.forEach(dbF => {
-    const formatted = {
+  // Format fuel logs
+  const allFuel = dbFuel.map(dbF => {
+    const vehicleObj = dbVehicles.find(v => v.id === dbF.vehicle_id)
+    return {
       id: dbF.id,
-      vehicle: `Vehicle #${dbF.vehicle_id}`,
+      vehicle: vehicleObj ? vehicleObj.model : `Vehicle #${dbF.vehicle_id}`,
       date: dbF.date,
       liters: dbF.liters,
       cost: dbF.cost
     }
-    if (!allFuel.some(f => f.date === formatted.date && f.liters === formatted.liters)) {
-      allFuel.push(formatted)
-    }
   })
 
-  // Combine Mock & DB expenses
-  const allExpenses = [...MOCK_OTHER_EXPENSES]
-  dbExpenses.forEach(dbE => {
-    const formatted = {
+  // Format other expenses
+  const allExpenses = dbExpenses.map(dbE => {
+    const vehicleObj = dbVehicles.find(v => v.id === dbE.vehicle_id)
+    return {
       id: dbE.id,
       trip_id: dbE.trip_id ? `TR${String(dbE.trip_id).padStart(3, '0')}` : '—',
-      vehicle: `Vehicle #${dbE.vehicle_id}`,
+      vehicle: vehicleObj ? vehicleObj.model : `Vehicle #${dbE.vehicle_id}`,
       toll: dbE.type === 'Toll' ? dbE.cost : 0,
       other: dbE.type !== 'Toll' ? dbE.cost : 0,
       total: dbE.cost,
       status: 'Active'
-    }
-    if (!allExpenses.some(exp => exp.total === formatted.total && exp.trip_id === formatted.trip_id)) {
-      allExpenses.push(formatted)
     }
   })
 
@@ -307,6 +269,18 @@ export default function ExpensesPage() {
             </header>
             <form onSubmit={fuelForm.handleSubmit(onFuelSubmit)} className="flex flex-col gap-4">
               <div className="flex flex-col gap-1.5">
+                <label className="text-[10px] font-bold text-zinc-500 uppercase tracking-wider">Vehicle *</label>
+                <select
+                  className="bg-zinc-950 border border-zinc-800 rounded-lg px-3 py-2.5 text-sm text-zinc-200 focus:outline-none cursor-pointer"
+                  {...fuelForm.register('vehicle_id', { required: true })}
+                >
+                  <option value="">Select vehicle...</option>
+                  {dbVehicles.map(v => (
+                    <option key={v.id} value={v.id}>{v.model} ({v.registration_number})</option>
+                  ))}
+                </select>
+              </div>
+              <div className="flex flex-col gap-1.5">
                 <label className="text-[10px] font-bold text-zinc-500 uppercase tracking-wider">Liters *</label>
                 <input
                   type="number"
@@ -367,6 +341,28 @@ export default function ExpensesPage() {
               </button>
             </header>
             <form onSubmit={expenseForm.handleSubmit(onExpenseSubmit)} className="flex flex-col gap-4">
+              <div className="flex flex-col gap-1.5">
+                <label className="text-[10px] font-bold text-zinc-500 uppercase tracking-wider">Vehicle *</label>
+                <select
+                  className="bg-zinc-950 border border-zinc-800 rounded-lg px-3 py-2.5 text-sm text-zinc-200 focus:outline-none cursor-pointer"
+                  {...expenseForm.register('vehicle_id', { required: true })}
+                >
+                  <option value="">Select vehicle...</option>
+                  {dbVehicles.map(v => (
+                    <option key={v.id} value={v.id}>{v.model} ({v.registration_number})</option>
+                  ))}
+                </select>
+              </div>
+              <div className="flex flex-col gap-1.5">
+                <label className="text-[10px] font-bold text-zinc-500 uppercase tracking-wider">Type *</label>
+                <select
+                  className="bg-zinc-950 border border-zinc-800 rounded-lg px-3 py-2.5 text-sm text-zinc-200 focus:outline-none cursor-pointer"
+                  {...expenseForm.register('type', { required: true })}
+                >
+                  <option value="Toll">Toll</option>
+                  <option value="Other">Other</option>
+                </select>
+              </div>
               <div className="flex flex-col gap-1.5">
                 <label className="text-[10px] font-bold text-zinc-500 uppercase tracking-wider">Description *</label>
                 <input
