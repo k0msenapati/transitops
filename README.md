@@ -1,48 +1,113 @@
-# TransitOps
+<div align="center">
+
+# 🚛 TransitOps
 
 ### Smart Transport Operations Platform
 
-A centralized platform to manage the complete lifecycle of transport operations.
+*A centralized, role-based system for digitizing fleet, driver, trip, and maintenance management.*
 
----
+![Frontend](https://img.shields.io/badge/frontend-React%20%7C%20Vite%20%7C%20Tailwind-61DAFB?logo=react)
+![Backend](https://img.shields.io/badge/backend-FastAPI%20%7C%20Python-009688?logo=fastapi)
 
-## The Problem
-Many logistics companies still rely on spreadsheets and manual logbooks to manage their transport operations. This often leads to:
-* Scheduling conflicts and double-booked drivers/vehicles.
-* Underutilized vehicles.
-* Missed maintenance schedules.
-* Expired driver licenses on active runs.
-* Inaccurate expense tracking and poor operational visibility.
+</div>
 
-## The Solution
-TransitOps digitizes vehicle registries, driver safety profiles, dispatch tracking, garage maintenance, and expenses under a single console. The platform:
-1. Enforces **Mandatory Business Rules** (e.g. blocking overloaded dispatches or suspended drivers).
-2. Automates status transitions for vehicles and drivers.
-3. Provides role-based scopes (Fleet Manager, Dispatcher, Safety Officer, Financial Analyst) to prevent operational conflicts.
-4. Computes real-time reports and vehicle ROI margins.
 
----
+## Overview
+
+Many transport and logistics organizations still run their operations on spreadsheets, manual logs, and disconnected tools. This leads to:
+
+- ⚠️ Scheduling conflicts and double-booked vehicles
+- ⚠️ Underutilized fleet capacity
+- ⚠️ Delayed or missed vehicle maintenance
+- ⚠️ Inaccurate fuel and expense tracking
+- ⚠️ Drivers dispatched with expired licenses
+- ⚠️ No real-time visibility into operations
+
+**TransitOps** solves this by providing a single, centralized platform that manages the **complete transport lifecycle** - from vehicle registration and driver onboarding, to trip dispatching, maintenance scheduling, expense tracking, and business analytics - all enforced by automated backend business rules.
+
 
 ## Key Features
-* **Vehicle Registry**: Master list of vehicles with max load capacity, acquisition costs, odometers, and active statuses.
-* **Driver Management**: Profiles tracking safety scores, contact categories, and license validity.
-* **Trip Dispatcher**: Schedule active runs with dynamic load capacity audits and license expiry checks.
-* **Maintenance Logs**: Schedule vehicle repairs; auto-toggles vehicles to "In Shop" status, hiding them from the dispatch pool.
-* **Fuel & Expenses**: Log liters, cost logs, and toll expenses to compute operational costs.
-* **Reports & Analytics**: Real-time stats for Fuel Efficiency, Fleet Utilization, Operational Cost, and Vehicle ROI.
 
----
+| Module | Description |
+|---|---|
+| 🚚 **Vehicle Management** | Register, update, and track vehicles along with their live availability status |
+| 🧑‍✈️ **Driver Management** | Maintain driver profiles, license validity, and real-time assignment status |
+| 📦 **Trip Dispatching** | Assign drivers and vehicles to trips with automated eligibility checks |
+| 🔧 **Maintenance Tracking** | Schedule servicing; vehicles are auto-removed from the dispatch pool during maintenance |
+| ⛽ **Fuel & Expense Management** | Log and monitor fuel usage and operational costs per vehicle/trip |
+| 📊 **Business Analytics Dashboard** | Visualize fleet utilization, fuel efficiency, operational costs, and vehicle ROI |
+| 🔐 **Role-Based Access Control** | Each stakeholder sees only the features relevant to their role |
 
-## Installation & Setup
 
-<details>
-<summary><b>1. Backend Server Setup (FastAPI + Python)</b></summary>
+
+## Stakeholder Roles
+
+TransitOps is built around **role-based access**, ensuring every user interacts only with what matters to them:
+
+* **Fleet Manager** - Oversees fleet assets, maintenance, vehicle lifecycle, and operational efficiency.
+* **Dispatcher** - Creates trips, assigns vehicles and drivers, and monitors active deliveries.
+* **Safety Officer** - Ensures driver compliance, tracks license validity, and monitors safety scores.
+* **Financial Analyst** - Reviews operational expenses, fuel consumption, maintenance costs, and profitability.
+
+
+## ⚙️ Core Business Rules & Automation
+
+TransitOps enforces critical operational logic automatically at the backend, removing the need for manual checks:
+
+- **Cargo weight validation** - Cargo Weight must not exceed the vehicle's maximum load capacity.
+- **License compliance check** - Drivers with expired licenses or Suspended status cannot be assigned to trips.
+- **Double booking prevention** - A driver or vehicle already marked On Trip cannot be assigned to another trip.
+- **Auto status synchronization** - Dispatching a trip automatically changes both the vehicle and driver status to On Trip.
+- **Auto availability restoration** - Completing a trip automatically changes both the vehicle and driver status back to Available. Cancelling a dispatched trip restores the vehicle and driver to Available.
+- **Maintenance lockout** - Creating an active maintenance record automatically changes vehicle status to In Shop (hiding it from the dispatch pool). Closing maintenance restores the vehicle to Available (unless retired).
+
+> These rules ensure the operational state of the fleet is always accurate and consistent - no manual updates required.
+
+
+## 🏗️ Architecture
+
+```mermaid
+graph TD
+    Client[Client: React + Vite + Tailwind CSS] <--> |REST API / JWT| Backend[Backend: FastAPI + Python]
+    Backend <--> |SQLAlchemy ORM| DB[(Database: SQLite / PostgreSQL)]
+    
+    subgraph Client Workspaces
+        FM[Fleet Manager]
+        DP[Dispatcher]
+        SO[Safety Officer]
+        FA[Financial Analyst]
+    end
+    
+    Client === FM
+    Client === DP
+    Client === SO
+    Client === FA
+```
+
+
+## 🛠️ Tech Stack
+
+| Layer | Technology |
+|---|---|
+| **Frontend** | React, Vite, Tailwind CSS, TanStack React Query, Wouter, React Hook Form |
+| **Backend** | FastAPI, Python, UV package manager |
+| **Database** | PostgreSQL (Production) / SQLite (Local), SQLAlchemy ORM |
+| **Authentication** | JWT Token-based Role-Based Access Control (RBAC) |
+| **Test Suite** | Pytest |
+
+
+## 🚀 Getting Started
 
 ### Prerequisites
-* Python 3.10+
-* `uv` package manager installed (`curl -LsSf https://astral.sh/uv/install.sh | sh`)
+- Node.js (v18+)
+- Python (v3.10+)
+- `uv` package manager (`curl -LsSf https://astral.sh/uv/install.sh | sh`)
 
-### Setup & Run Commands
+### Installation & Run Steps
+
+<details>
+<summary><b>1. Backend Setup (FastAPI)</b></summary>
+
 ```bash
 # Navigate to backend
 cd server
@@ -50,7 +115,7 @@ cd server
 # Install dependencies and sync environment
 uv sync
 
-# Seed local database (creates users, vehicles, drivers, trips, fuel logs, and settings)
+# Seed local database (creates mock users, vehicles, drivers, and settings)
 uv run python -m app.seed
 
 # Run local development server
@@ -60,30 +125,24 @@ API Documentation will be hosted at: `http://localhost:8000/docs`
 </details>
 
 <details>
-<summary><b>2. Frontend Client Setup (React + Vite)</b></summary>
+<summary><b>2. Frontend Setup (React + Vite)</b></summary>
 
-### Prerequisites
-* Node.js v18+
-* `bun` package manager
-
-### Setup & Run Commands
 ```bash
 # Navigate to client
 cd client
 
 # Install packages
-bun install
+npm install
 
 # Start Vite hot-reload development console
-bun run dev
+npm run dev
 ```
 Local console will be hosted at: `http://localhost:5173/`
 </details>
 
 <details>
-<summary><b>3. Running backend test suite</b></summary>
+<summary><b>3. Running Backend Tests</b></summary>
 
-Run the core business logic test validation suite:
 ```bash
 # Navigate to backend
 cd server
@@ -93,11 +152,21 @@ uv run pytest
 ```
 </details>
 
----
 
-## Created By
+## 👥 Contributors
 
-| Creator | Contributions |
-| :---: | :--- |
-| [<img src="https://github.com/k0msenapati.png?size=80" width="80" style="border-radius:50%"/><br/>**k0msenapati**](https://github.com/k0msenapati) | Backend + Frontend |
-| [<img src="https://github.com/Ayushb690.png?size=80" width="80" style="border-radius:50%"/><br/>**Ayushb690**](https://github.com/Ayushb690) | Frontend |
+<div align="center">
+
+| Creator | Contributions | Profile |
+| :---: | :---: | :---: |
+| <img src="https://github.com/k0msenapati.png?size=80" width="80" style="border-radius:50%"/> <br> **k0msenapati** | Backend + Frontend | [GitHub](https://github.com/k0msenapati) |
+| <img src="https://github.com/Ayushb690.png?size=80" width="80" style="border-radius:50%"/> <br> **Ayushb690** | Frontend | [GitHub](https://github.com/Ayushb690) |
+
+</div>
+
+
+<div align="center">
+
+**TransitOps** - Modernizing fleet management, one trip at a time. 🚛
+
+</div>
