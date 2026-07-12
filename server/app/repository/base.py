@@ -16,7 +16,9 @@ class BaseRepository(Generic[ModelType]):
         return db.query(self.model).offset(skip).limit(limit).all()
 
     def create(self, db: Session, obj_in: dict[str, Any] | Any) -> ModelType:
-        if isinstance(obj_in, dict):
+        if hasattr(obj_in, "model_dump"):
+            db_obj = self.model(**obj_in.model_dump())
+        elif isinstance(obj_in, dict):
             db_obj = self.model(**obj_in)
         else:
             db_obj = obj_in
@@ -28,7 +30,9 @@ class BaseRepository(Generic[ModelType]):
     def update(
         self, db: Session, db_obj: ModelType, obj_in: dict[str, Any] | Any
     ) -> ModelType:
-        if isinstance(obj_in, dict):
+        if hasattr(obj_in, "model_dump"):
+            update_data = obj_in.model_dump(exclude_unset=True)
+        elif isinstance(obj_in, dict):
             update_data = obj_in
         else:
             update_data = obj_in.__dict__

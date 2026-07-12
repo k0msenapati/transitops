@@ -18,7 +18,7 @@ def test_register_and_login(client):
         "role": "fleet_manager",
         "name": "Fleet Owner",
     }
-    response = client.post("/auth/register", json=register_payload)
+    response = client.post("/api/auth/register", json=register_payload)
     assert response.status_code == 201
     data = response.json()
     assert data["email"] == "manager@transitops.com"
@@ -27,13 +27,13 @@ def test_register_and_login(client):
     assert "id" in data
 
     # 2. Try to register same email again
-    response_dup = client.post("/auth/register", json=register_payload)
+    response_dup = client.post("/api/auth/register", json=register_payload)
     assert response_dup.status_code == 400
     assert response_dup.json()["detail"] == "Email already registered"
 
     # 3. Login with correct credentials
     login_payload = {"email": "manager@transitops.com", "password": "securepassword123"}
-    response_login = client.post("/auth/login", json=login_payload)
+    response_login = client.post("/api/auth/login", json=login_payload)
     assert response_login.status_code == 200
     token_data = response_login.json()
     assert "access_token" in token_data
@@ -41,7 +41,7 @@ def test_register_and_login(client):
 
     # 4. Login with incorrect credentials
     bad_login = {"email": "manager@transitops.com", "password": "wrongpassword"}
-    response_bad = client.post("/auth/login", json=bad_login)
+    response_bad = client.post("/api/auth/login", json=bad_login)
     assert response_bad.status_code == 401
     assert response_bad.json()["detail"] == "Incorrect email or password"
 
@@ -49,7 +49,7 @@ def test_register_and_login(client):
 def test_get_me_and_rbac(client):
     # Register and login a Manager
     client.post(
-        "/auth/register",
+        "/api/auth/register",
         json={
             "email": "manager2@transitops.com",
             "password": "pass",
@@ -58,12 +58,12 @@ def test_get_me_and_rbac(client):
         },
     )
     token_m = client.post(
-        "/auth/login", json={"email": "manager2@transitops.com", "password": "pass"}
+        "/api/auth/login", json={"email": "manager2@transitops.com", "password": "pass"}
     ).json()["access_token"]
 
     # Register and login a Dispatcher
     client.post(
-        "/auth/register",
+        "/api/auth/register",
         json={
             "email": "dispatcher@transitops.com",
             "password": "pass",
@@ -72,16 +72,17 @@ def test_get_me_and_rbac(client):
         },
     )
     token_d = client.post(
-        "/auth/login", json={"email": "dispatcher@transitops.com", "password": "pass"}
+        "/api/auth/login",
+        json={"email": "dispatcher@transitops.com", "password": "pass"},
     ).json()["access_token"]
 
     # 1. Test /users/me without token
-    response_unauth = client.get("/users/me")
+    response_unauth = client.get("/api/users/me")
     assert response_unauth.status_code == 401
 
     # 2. Test /users/me with valid manager token
     response_me = client.get(
-        "/users/me", headers={"Authorization": f"Bearer {token_m}"}
+        "/api/users/me", headers={"Authorization": f"Bearer {token_m}"}
     )
     assert response_me.status_code == 200
     assert response_me.json()["email"] == "manager2@transitops.com"
