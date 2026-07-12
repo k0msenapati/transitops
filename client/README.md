@@ -1,18 +1,46 @@
-# React + Vite
+# TransitOps Console
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Logistics and transport management system frontend console.
 
-Currently, two official plugins are available:
+## Tech Stack
+* **Framework**: React + Vite
+* **Styling**: Tailwind CSS
+* **Routing**: Wouter
+* **Data Fetching**: TanStack React Query
+* **Forms**: React Hook Form
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+## Target Workspaces by Role
+* **Fleet Manager**: Oversees fleet assets, maintenance, vehicle lifecycle, and operational efficiency.
+* **Dispatcher**: Creates trips, assigns vehicles and drivers, and monitors active deliveries.
+* **Safety Officer**: Ensures driver compliance, tracks license validity, and monitors safety scores.
+* **Financial Analyst**: Reviews operational expenses, fuel consumption, maintenance costs, and profitability.
 
-## React Compiler
+## Mandatory Business Rules Enforced
+* Retired or In Shop vehicles must never appear in the dispatch selection.
+* Drivers with expired licenses or Suspended status cannot be assigned to trips.
+* A driver or vehicle already marked On Trip cannot be assigned to another trip.
+* Cargo Weight must not exceed the vehicle's maximum load capacity.
+* Dispatching a trip automatically changes both the vehicle and driver status to On Trip.
+* Completing a trip automatically changes both the vehicle and driver status back to Available.
+* Cancelling a dispatched trip restores the vehicle and driver to Available.
+* Creating an active maintenance record automatically changes vehicle status to In Shop.
+* Closing maintenance restores the vehicle to Available (unless retired).
 
-The React Compiler is enabled on this template. See [this documentation](https://react.dev/learn/react-compiler) for more information.
+## Reports & Analytics Displayed
+* **Fuel Efficiency**: Distance / Fuel
+* **Fleet Utilization (%)**
+* **Operational Cost**: Fuel + Maintenance
+* **Vehicle ROI**: `(Revenue - (Maintenance + Fuel)) / Acquisition Cost`
 
-Note: This will impact Vite dev & build performances.
+## Installation & Setup
 
-## Expanding the ESLint configuration
+```bash
+# Install dependencies
+bun install
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+# Run dev server
+bun run dev
+
+# Build production bundle
+bun run build
+```
