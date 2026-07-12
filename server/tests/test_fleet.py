@@ -1,5 +1,3 @@
-
-
 def test_vehicles_crud_and_rbac(client):
     # Register and login roles
     client.post(

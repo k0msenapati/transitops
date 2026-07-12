@@ -1,5 +1,5 @@
 import enum
-from datetime import datetime
+from datetime import datetime, timezone
 from sqlalchemy import Column, Integer, String, Float, Enum, DateTime, ForeignKey
 from sqlalchemy.orm import relationship
 from app.core.database import Base
@@ -29,7 +29,11 @@ class Trip(Base):
     status = Column(Enum(TripStatus), nullable=False, default=TripStatus.DRAFT)
     eta_minutes = Column(Integer, nullable=True)  # ETA in minutes
     notes = Column(String, nullable=True)  # notes or cancellation reason
-    created_at = Column(DateTime, nullable=False, default=datetime.utcnow)
+    created_at = Column(
+        DateTime,
+        nullable=False,
+        default=lambda: datetime.now(timezone.utc).replace(tzinfo=None),
+    )
     dispatched_at = Column(DateTime, nullable=True)
     completed_at = Column(DateTime, nullable=True)
 
