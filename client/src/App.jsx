@@ -9,7 +9,7 @@ function App() {
   const [serverMessage, setServerMessage] = useState('Connecting to server...')
 
   useEffect(() => {
-    fetch('/api')
+    fetch('/api/status')
       .then((res) => res.json())
       .then((data) => setServerMessage(data.message || JSON.stringify(data)))
       .catch((err) => setServerMessage('Failed to connect to server: ' + err.message))

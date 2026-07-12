@@ -7,9 +7,9 @@ Base.metadata.create_all(bind=engine)
 
 app = FastAPI()
 
-app.include_router(base_router)
+app.include_router(base_router, prefix="/api")
 
 
-@app.get("/")
+@app.get("/api/status")
 def read_root():
-    return {"message": "Welcome to TransitOps API"}
+    return {"status": "OK"}
