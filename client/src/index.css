@@ -1,1 +1,245 @@
 @import "tailwindcss";
+
+/* ----------------------------------------------------
+   TransitOps Custom Styling and Theme Color Variables
+   ---------------------------------------------------- */
+
+:root {
+  /* Default Theme: Teal (Tailwind teal-500/600) */
+  --brand-color: #0d9488;
+  --brand-hover: #0f766e;
+  --brand-glow: rgba(13, 148, 136, 0.15);
+}
+
+[data-theme="green"] {
+  --brand-color: #059669; /* emerald-600 */
+  --brand-hover: #047857; /* emerald-700 */
+  --brand-glow: rgba(5, 150, 105, 0.15);
+}
+
+[data-theme="blue"] {
+  --brand-color: #2563eb; /* blue-600 */
+  --brand-hover: #1d4ed8; /* blue-700 */
+  --brand-glow: rgba(37, 99, 235, 0.15);
+}
+
+[data-theme="teal"] {
+  --brand-color: #0d9488; /* teal-600 */
+  --brand-hover: #0f766e; /* teal-700 */
+  --brand-glow: rgba(13, 148, 136, 0.15);
+}
+
+[data-theme="yellow"] {
+  --brand-color: #d97706; /* amber-600 */
+  --brand-hover: #b45309; /* amber-700 */
+  --brand-glow: rgba(217, 119, 6, 0.15);
+}
+
+[data-theme="purple"] {
+  --brand-color: #7c3aed; /* violet-600 */
+  --brand-hover: #6d28d9; /* violet-700 */
+  --brand-glow: rgba(124, 58, 237, 0.15);
+}
+
+/* ----------------------------------------------------
+   JSX Overrides: Map hardcoded amber colors to dynamic brand theme
+   ---------------------------------------------------- */
+
+/* Dynamic Button Backgrounds */
+.bg-\[\#b87310\] {
+  background-color: var(--brand-color) !important;
+}
+.hover\:bg-\[\#a0620c\]:hover {
+  background-color: var(--brand-hover) !important;
+}
+
+/* Dynamic Text Colors */
+.text-\[\#b87310\] {
+  color: var(--brand-color) !important;
+}
+
+/* Dynamic Borders */
+.border-\[\#b87310\] {
+  border-color: var(--brand-color) !important;
+}
+.border-\[\#b87310\]\/30 {
+  border-color: rgba(var(--brand-color), 0.3) !important;
+}
+
+/* Dynamic Accents */
+.accent-\[\#b87310\] {
+  accent-color: var(--brand-color) !important;
+}
+
+/* Dynamic backgrounds with opacity */
+.bg-\[\#b87310\]\/10 {
+  background-color: var(--brand-glow) !important;
+}
+.bg-\[\#b87310\]\/5 {
+  background-color: rgba(var(--brand-color), 0.05) !important;
+}
+.bg-\[\#b87310\]\/80 {
+  background-color: var(--brand-color) !important;
+  opacity: 0.8 !important;
+}
+.hover\:bg-\[\#b87310\]:hover {
+  background-color: var(--brand-hover) !important;
+}
+
+/* ----------------------------------------------------
+   Sidebar Navigation Theme Overrides
+   ---------------------------------------------------- */
+
+/* Desktop active item styling overrides */
+aside nav a div.bg-zinc-100.text-zinc-900 {
+  background-color: var(--brand-glow) !important;
+  color: var(--brand-color) !important;
+  border-left: 3px solid var(--brand-color) !important;
+  border-top-left-radius: 0px !important;
+  border-bottom-left-radius: 0px !important;
+  box-shadow: none !important;
+}
+
+/* Mobile active drawer item styling overrides */
+div.animate-fade-in a div.bg-zinc-800.text-zinc-100 {
+  background-color: var(--brand-glow) !important;
+  color: var(--brand-color) !important;
+}
+
+/* ----------------------------------------------------
+   Non-standard Tailwind Color Definitions (Fixing broken CSS)
+   ---------------------------------------------------- */
+
+.bg-zinc-850 { background-color: #1a1a1e !important; }
+.bg-zinc-850\/50 { background-color: rgba(26, 26, 30, 0.5) !important; }
+.bg-zinc-850\/10 { background-color: rgba(26, 26, 30, 0.1) !important; }
+.hover\:bg-zinc-850:hover { background-color: #1a1a1e !important; }
+.hover\:bg-zinc-850\/10:hover { background-color: rgba(26, 26, 30, 0.1) !important; }
+.border-zinc-850 { border-color: #1e1e22 !important; }
+.divide-zinc-850 > :not([hidden]) ~ :not([hidden]) { border-color: #1e1e22 !important; }
+.text-zinc-250 { color: #d4d4d8 !important; }
+.text-zinc-350 { color: #a1a1aa !important; }
+.text-zinc-450 { color: #71717a !important; }
+.text-zinc-550 { color: #52525b !important; }
+.text-zinc-650 { color: #3f3f46 !important; }
+
+/* Status Colors Mapping */
+.text-emerald-450 { color: #10b981 !important; }
+.bg-emerald-955\/20 { background-color: rgba(16, 185, 129, 0.15) !important; }
+.bg-emerald-950\/20 { background-color: rgba(16, 185, 129, 0.1) !important; }
+.bg-emerald-955\/25 { background-color: rgba(16, 185, 129, 0.18) !important; }
+.bg-emerald-950\/25 { background-color: rgba(16, 185, 129, 0.12) !important; }
+.border-emerald-900\/40 { border-color: rgba(16, 185, 129, 0.25) !important; }
+
+.text-blue-400 { color: #3b82f6 !important; }
+.bg-blue-955\/20 { background-color: rgba(59, 130, 246, 0.15) !important; }
+.bg-blue-950\/20 { background-color: rgba(59, 130, 246, 0.1) !important; }
+.border-blue-900\/40 { border-color: rgba(59, 130, 246, 0.25) !important; }
+.border-blue-900\/50 { border-color: rgba(59, 130, 246, 0.3) !important; }
+
+.text-amber-500 { color: #f59e0b !important; }
+.bg-amber-955\/20 { background-color: rgba(245, 158, 11, 0.15) !important; }
+.bg-amber-955\/25 { background-color: rgba(245, 158, 11, 0.18) !important; }
+.bg-amber-950\/20 { background-color: rgba(245, 158, 11, 0.1) !important; }
+.border-amber-900\/40 { border-color: rgba(245, 158, 11, 0.25) !important; }
+
+.text-violet-400 { color: #a855f7 !important; }
+.bg-violet-955\/20 { background-color: rgba(168, 85, 247, 0.15) !important; }
+.border-violet-900\/45 { border-color: rgba(168, 85, 247, 0.25) !important; }
+
+/* ----------------------------------------------------
+   SaaS Dashboard Layout, Borders, and Table Overrides
+   ---------------------------------------------------- */
+
+/* Eliminate cheap borders and force uniform dark slate borders */
+.border-zinc-700,
+.border-zinc-800,
+.border-zinc-850,
+.border-zinc-900 {
+  border-color: #1e1e22 !important;
+}
+
+.divide-zinc-800 > :not([hidden]) ~ :not([hidden]),
+.divide-zinc-850 > :not([hidden]) ~ :not([hidden]),
+.divide-zinc-900 > :not([hidden]) ~ :not([hidden]) {
+  border-color: #1e1e22 !important;
+}
+
+/* Premium Dark Card Backgrounds */
+.bg-zinc-900 {
+  background-color: #0f0f11 !important; /* Clean, deep neutral gray-900 */
+}
+
+.bg-zinc-950 {
+  background-color: #08080a !important; /* Deep layout black-950 */
+}
+
+/* Premium Table Redesign */
+table {
+  border-collapse: separate !important;
+  border-spacing: 0 !important;
+  width: 100% !important;
+  background-color: #0f0f11 !important;
+  border: 1px solid #1e1e22 !important;
+  border-radius: 8px !important;
+  overflow: hidden !important;
+}
+
+thead {
+  background-color: #151518 !important;
+}
+
+th {
+  color: #8f8f94 !important; /* Sleek grey text */
+  border-bottom: 1px solid #1e1e22 !important;
+  padding: 12px 16px !important;
+  font-size: 0.75rem !important;
+  font-weight: 600 !important;
+  letter-spacing: 0.05em !important;
+  text-transform: uppercase !important;
+}
+
+td {
+  padding: 14px 16px !important;
+  border-bottom: 1px solid #16161a !important;
+  color: #e4e4e7 !important;
+  font-size: 0.85rem !important;
+  background-color: #0f0f11 !important;
+}
+
+tr:last-child td {
+  border-bottom: none !important;
+}
+
+tr:hover td {
+  background-color: #131317 !important; /* Premium hover highlighting */
+}
+
+/* Form inputs & dropdowns styling overrides */
+input, select, textarea {
+  border-color: #1e1e22 !important;
+  background-color: #08080a !important;
+  transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out !important;
+}
+
+input:focus, select:focus, textarea:focus {
+  border-color: var(--brand-color) !important;
+  outline: none !important;
+  box-shadow: 0 0 0 2px var(--brand-glow) !important;
+}
+
+/* Scrollbar customization */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: #08080a;
+}
+::-webkit-scrollbar-thumb {
+  background: #1e1e22;
+  border-radius: 9999px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #2d2d34;
+}

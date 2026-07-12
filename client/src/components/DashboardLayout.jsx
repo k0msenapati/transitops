@@ -165,8 +165,9 @@ export default function DashboardLayout({ children }) {
           <div className="text-xs text-zinc-500 font-semibold mb-2 px-3">
             Logged in as: {user.name} ({formatRole(user.role)})
           </div>
-          {menuItems.filter(item => hasAccess(item.roles)).map((item) => {
+           {menuItems.filter(item => hasAccess(item.roles)).map((item) => {
             const authorized = hasAccess(item.roles)
+            const active = item.path === '/dashboard' ? location === '/dashboard' : location.startsWith(item.path)
             return (
               <Link key={item.path} to={authorized ? item.path : '#'}>
                 <div 
@@ -174,8 +175,8 @@ export default function DashboardLayout({ children }) {
                   className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors ${
                     !authorized 
                       ? 'text-zinc-600 cursor-not-allowed opacity-50' 
-                      : location.startsWith(item.path)
-                        ? 'bg-zinc-800 text-zinc-100'
+                      : active
+                        ? 'bg-zinc-805 text-zinc-100 bg-zinc-800'
                         : 'text-zinc-400 hover:bg-zinc-850 hover:text-zinc-200 cursor-pointer'
                   }`}
                 >
@@ -212,7 +213,7 @@ export default function DashboardLayout({ children }) {
           <nav className="flex flex-col gap-2">
             {menuItems.filter(item => hasAccess(item.roles)).map((item) => {
               const authorized = hasAccess(item.roles)
-              const active = location.startsWith(item.path)
+              const active = item.path === '/dashboard' ? location === '/dashboard' : location.startsWith(item.path)
               return (
                 <Link key={item.path} to={authorized ? item.path : '#'}>
                   <div 

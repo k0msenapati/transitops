@@ -8,9 +8,12 @@ export default function SettingsPage() {
   const [depotName, setDepotName] = useState('Anandnagar Depot ASTD')
   const [currency, setCurrency] = useState('INR (₹)')
   const [distanceUnit, setDistanceUnit] = useState('Kilometers')
+  const [themeColor, setThemeColor] = useState(() => localStorage.getItem('transitops-theme') || 'teal')
 
   const handleSave = (e) => {
     e.preventDefault()
+    localStorage.setItem('transitops-theme', themeColor)
+    document.documentElement.setAttribute('data-theme', themeColor)
     alert('General settings saved successfully!')
   }
 
@@ -110,6 +113,26 @@ export default function SettingsPage() {
                 >
                   <option>Kilometers</option>
                   <option>Miles</option>
+                </select>
+              </div>
+
+              {/* Theme Color Dropdown */}
+              <div className="flex flex-col gap-1.5">
+                <label className="text-[10px] font-bold text-zinc-500 uppercase tracking-wider">Theme Color</label>
+                <select
+                  value={themeColor}
+                  onChange={(e) => {
+                    setThemeColor(e.target.value)
+                    localStorage.setItem('transitops-theme', e.target.value)
+                    document.documentElement.setAttribute('data-theme', e.target.value)
+                  }}
+                  className="bg-zinc-950 border border-zinc-850 rounded-lg px-3 py-2.5 text-sm text-zinc-300 focus:outline-none cursor-pointer"
+                >
+                  <option value="teal">Teal (Default)</option>
+                  <option value="green">Green</option>
+                  <option value="blue">Blue</option>
+                  <option value="yellow">Yellow</option>
+                  <option value="purple">Purple</option>
                 </select>
               </div>
 

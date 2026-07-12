@@ -1,3 +1,4 @@
+import { useEffect } from 'react'
 import { Route, Switch } from 'wouter'
 import { AuthProvider } from './context/AuthContext'
 import Layout from './components/Layout'
@@ -17,6 +18,11 @@ import SettingsPage from './pages/SettingsPage'
 import NotFoundPage from './pages/NotFoundPage'
 
 export default function App() {
+  useEffect(() => {
+    const savedTheme = localStorage.getItem('transitops-theme') || 'teal';
+    document.documentElement.setAttribute('data-theme', savedTheme);
+  }, []);
+
   return (
     <AuthProvider>
       <Switch>
@@ -93,3 +99,4 @@ export default function App() {
     </AuthProvider>
   )
 }
+
