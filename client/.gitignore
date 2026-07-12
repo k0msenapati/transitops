@@ -28,6 +28,7 @@ dist-ssr/
 .idea/
 *.suo
 *.ntvs*
+
 *.njsproj
 *.sln
 *.sw?
@@ -39,15 +40,10 @@ ehthumbs.db
 Thumbs.db
 
 # Specific requested exclusions
-wireframe.jpeg
 PLAN.md
-[Ii]mplementation [Pp]lan.md
+Implementation Plan.md
 [Ii]mplementation_[Pp]lan.md
-implementation_plan.md
 Implementation_Plan.md
 [Ww]alkthrough.md
 [Tt]ask.md
-
-PLAN.md
-Implementation Plan.md
 wireframe.jpeg
